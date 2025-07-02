@@ -251,3 +251,139 @@ Status: 401 Unauthorized
 ## Notes
 - Requires a valid JWT token in the Authorization header.
 - Logs out the currently authenticated user.
+
+# Captain Registration Endpoint Documentation
+
+## Endpoint
+
+`POST /captain/register`
+
+## Description
+Registers a new captain in the system. This endpoint accepts captain details, validates them, hashes the password, creates a new captain, and returns an authentication token along with the captain data.
+
+## Request Body
+The request body must be a JSON object with the following structure:
+
+```
+{
+  "fullname": {
+    "firstname": "string (min 3 chars, required)",
+    "lastname": "string (min 3 chars, optional)"
+  },
+  "email": "string (valid email, required)",
+  "password": "string (min 6 chars, required)",
+  "vehicle": {
+    "color": "string (required)",
+    "plate": "string (required)",
+    "capacity": "number (required)",
+    "type": "string (car, bike, truck, van; required)"
+  }
+}
+```
+
+### Example
+```
+{
+  "fullname": {
+    "firstname": "Alice",
+    "lastname": "Smith"
+  },
+  "email": "alice.smith@example.com",
+  "password": "password123",
+  "vehicle": {
+    "color": "Red",
+    "plate": "ABC1234",
+    "capacity": 4,
+    "type": "car"
+  }
+}
+```
+
+## Responses
+
+    `captain` (object):
+        `fullname` (object):
+            `firstname` (string): Captain's first name (minimum 3 characters).
+            `lastname` (string): Captain's last name (minimum 3 characters).
+        `email` (string): Captain's email address (must be a valid email).
+        `vehicle` (object):
+            `color` (string): Vehicle color.
+            `plate` (string): Vehicle plate.
+            `capacity` (number): Vehicle capacity.
+            `type` (string): Vehicle type (car, bike, truck, van).
+        // ...other captain fields
+    `token` (String): JWT Token
+
+### Success (201 Created)
+```
+Status: 201 Created
+{
+  "token": "<jwt_token>",
+  "captain": {
+    "_id": "<captain_id>",
+    "fullname": {
+      "firstname": "Alice",
+      "lastname": "Smith"
+    },
+    "email": "alice.smith@example.com",
+    "vehicle": {
+      "color": "Red",
+      "plate": "ABC1234",
+      "capacity": 4,
+      "type": "car"
+    }
+    // ...other captain fields
+  }
+}
+```
+
+### Validation Error (400 Bad Request)
+```
+Status: 400 Bad Request
+{
+  "errors": [
+    {
+      "msg": "First name is required",
+      "param": "fullname.firstname",
+      "location": "body"
+    },
+    {
+      "msg": "Invalid email address",
+      "param": "email",
+      "location": "body"
+    },
+    {
+      "msg": "Password must be at least 6 characters long",
+      "param": "password",
+      "location": "body"
+    },
+    {
+      "msg": "Vehicle color is required",
+      "param": "vehicle.color",
+      "location": "body"
+    },
+    {
+      "msg": "Vehicle plate is required",
+      "param": "vehicle.plate",
+      "location": "body"
+    },
+    {
+      "msg": "Vehicle capacity must be a number",
+      "param": "vehicle.capacity",
+      "location": "body"
+    },
+    {
+      "msg": "Invalid vehicle type",
+      "param": "vehicle.type",
+      "location": "body"
+    }
+    // ...other errors
+  ]
+}
+```
+
+## Notes
+- All required fields must be present and valid.
+- The password is securely hashed before storage.
+- On success, a JWT token is returned for authentication.
+- Vehicle details are required for captain registration.

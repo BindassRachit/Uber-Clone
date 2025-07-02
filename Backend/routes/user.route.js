@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {body} = require('express-validator');
 const userController = require('../Controllers/user.controllers');
+const authMiddleware = require('../middleware/auth.middleware');
 
 router.post('/register', [
     body('email').isEmail().withMessage('Please enter a valid email address'),

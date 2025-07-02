@@ -166,3 +166,88 @@ Status: 401 Unauthorized
 - Both email and password are required and validated.
 - On success, a JWT token is returned for authentication.
 - Returns 401 if credentials are invalid or user does not exist.
+
+# User Profile Endpoint Documentation
+
+## Endpoint
+
+`GET /users/profile`
+
+## Description
+Returns the authenticated user's profile information. Requires a valid JWT token in the Authorization header.
+
+## Request Headers
+- `Authorization: Bearer <jwt_token>` (required)
+
+## Responses
+
+    `user` (object):
+        `fullname` (object):
+            `firstname` (string): User's first name.
+            `lastname` (string): User's last name.
+        `email` (string): User's email address.
+        // ...other user fields
+
+### Success (200 OK)
+```
+Status: 200 OK
+{
+  "user": {
+    "_id": "<user_id>",
+    "fullname": {
+      "firstname": "John",
+      "lastname": "Doe"
+    },
+    "email": "john.doe@example.com"
+    // ...other user fields
+  }
+}
+```
+
+### Authentication Error (401 Unauthorized)
+```
+Status: 401 Unauthorized
+{
+  "message": "Authentication required"
+}
+```
+
+## Notes
+- Requires a valid JWT token in the Authorization header.
+- Returns the profile of the currently authenticated user.
+
+# User Logout Endpoint Documentation
+
+## Endpoint
+
+`GET /users/logout`
+
+## Description
+Logs out the authenticated user by invalidating the session or token (implementation may vary). Requires a valid JWT token in the Authorization header.
+
+## Request Headers
+- `Authorization: Bearer <jwt_token>` (required)
+
+## Responses
+
+
+
+### Success (200 OK)
+```
+Status: 200 OK
+{
+  "message": "Logout successful"
+}
+```
+
+### Authentication Error (401 Unauthorized)
+```
+Status: 401 Unauthorized
+{
+  "message": "Authentication required"
+}
+```
+
+## Notes
+- Requires a valid JWT token in the Authorization header.
+- Logs out the currently authenticated user.

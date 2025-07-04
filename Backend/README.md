@@ -255,34 +255,31 @@ Status: 401 Unauthorized
 # Captain Registration Endpoint Documentation
 
 ## Endpoint
-
-`POST /captain/register`
+`POST /captains/register`
 
 ## Description
-Registers a new captain in the system. This endpoint accepts captain details, validates them, hashes the password, creates a new captain, and returns an authentication token along with the captain data.
+Registers a new captain. Requires vehicle details and personal information. Returns a JWT token and captain data on success.
 
 ## Request Body
-The request body must be a JSON object with the following structure:
-
-```
+```jsonc
 {
   "fullname": {
-    "firstname": "string (min 3 chars, required)",
-    "lastname": "string (min 3 chars, optional)"
+    "firstname": "string", // required, min 1 char
+    "lastname": "string"   // optional
   },
-  "email": "string (valid email, required)",
-  "password": "string (min 6 chars, required)",
+  "email": "string",        // required, valid email
+  "password": "string",     // required, min 6 chars
   "vehicle": {
-    "color": "string (required)",
-    "plate": "string (required)",
-    "capacity": "number (required)",
-    "type": "string (car, bike, truck, van; required)"
+    "color": "string",      // required
+    "plate": "string",      // required
+    "capacity": 4,           // required, number
+    "type": "car"           // required, one of: car, bike, truck, van
   }
 }
 ```
 
 ### Example
-```
+```jsonc
 {
   "fullname": {
     "firstname": "Alice",
@@ -292,7 +289,7 @@ The request body must be a JSON object with the following structure:
   "password": "password123",
   "vehicle": {
     "color": "Red",
-    "plate": "ABC1234",
+    "plate": "XYZ1234",
     "capacity": 4,
     "type": "car"
   }
@@ -301,22 +298,8 @@ The request body must be a JSON object with the following structure:
 
 ## Responses
 
-    `captain` (object):
-        `fullname` (object):
-            `firstname` (string): Captain's first name (minimum 3 characters).
-            `lastname` (string): Captain's last name (minimum 3 characters).
-        `email` (string): Captain's email address (must be a valid email).
-        `vehicle` (object):
-            `color` (string): Vehicle color.
-            `plate` (string): Vehicle plate.
-            `capacity` (number): Vehicle capacity.
-            `type` (string): Vehicle type (car, bike, truck, van).
-        // ...other captain fields
-    `token` (String): JWT Token
-
 ### Success (201 Created)
-```
-Status: 201 Created
+```jsonc
 {
   "token": "<jwt_token>",
   "captain": {
@@ -328,9 +311,9 @@ Status: 201 Created
     "email": "alice.smith@example.com",
     "vehicle": {
       "color": "Red",
-      "plate": "ABC1234",
+      "plate": "XYZ1234",
       "capacity": 4,
-      "type": "car"
+      "vehicleType": "car"
     }
     // ...other captain fields
   }
@@ -338,8 +321,7 @@ Status: 201 Created
 ```
 
 ### Validation Error (400 Bad Request)
-```
-Status: 400 Bad Request
+```jsonc
 {
   "errors": [
     {
@@ -347,38 +329,15 @@ Status: 400 Bad Request
       "param": "fullname.firstname",
       "location": "body"
     },
-    {
-      "msg": "Invalid email address",
-      "param": "email",
-      "location": "body"
-    },
-    {
-      "msg": "Password must be at least 6 characters long",
-      "param": "password",
-      "location": "body"
-    },
-    {
-      "msg": "Vehicle color is required",
-      "param": "vehicle.color",
-      "location": "body"
-    },
-    {
-      "msg": "Vehicle plate is required",
-      "param": "vehicle.plate",
-      "location": "body"
-    },
-    {
-      "msg": "Vehicle capacity must be a number",
-      "param": "vehicle.capacity",
-      "location": "body"
-    },
-    {
-      "msg": "Invalid vehicle type",
-      "param": "vehicle.type",
-      "location": "body"
-    }
     // ...other errors
   ]
+}
+```
+
+### Duplicate Email (400 Bad Request)
+```jsonc
+{
+  "message": "Captain with this email already exists"
 }
 ```
 
@@ -386,4 +345,157 @@ Status: 400 Bad Request
 - All required fields must be present and valid.
 - The password is securely hashed before storage.
 - On success, a JWT token is returned for authentication.
-- Vehicle details are required for captain registration.
+
+# Captain Login Endpoint Documentation
+
+## Endpoint
+`POST /captains/login`
+
+## Description
+Authenticates a captain with email and password. Returns a JWT token and captain data on success.
+
+## Request Body
+```jsonc
+{
+  "email": "string",      // required, valid email
+  "password": "string"    // required, min 6 chars
+}
+```
+
+### Example
+```jsonc
+{
+  "email": "alice.smith@example.com",
+  "password": "password123"
+}
+```
+
+## Responses
+
+### Success (200 OK)
+```jsonc
+{
+  "token": "<jwt_token>",
+  "captain": {
+    "_id": "<captain_id>",
+    "fullname": {
+      "firstname": "Alice",
+      "lastname": "Smith"
+    },
+    "email": "alice.smith@example.com",
+    "vehicle": {
+      "color": "Red",
+      "plate": "XYZ1234",
+      "capacity": 4,
+      "vehicleType": "car"
+    }
+    // ...other captain fields
+  }
+}
+```
+
+### Validation Error (400 Bad Request)
+```jsonc
+{
+  "errors": [
+    {
+      "msg": "Please enter a valid email address",
+      "param": "email",
+      "location": "body"
+    },
+    // ...other errors
+  ]
+}
+```
+
+### Authentication Error (400 Bad Request)
+```jsonc
+{
+  "message": "Captain with this email does not exists"
+}
+// or
+{
+  "message": "Invalid email or password"
+}
+```
+
+## Notes
+- Both email and password are required and validated.
+- On success, a JWT token is returned for authentication.
+- Returns 400 if credentials are invalid or captain does not exist.
+
+# Captain Profile Endpoint Documentation
+
+## Endpoint
+`GET /captains/profile`
+
+## Description
+Returns the authenticated captain's profile information. Requires a valid JWT token in the Authorization header.
+
+## Request Headers
+- `Authorization: Bearer <jwt_token>` (required)
+
+## Responses
+
+### Success (200 OK)
+```jsonc
+{
+  "captain": {
+    "_id": "<captain_id>",
+    "fullname": {
+      "firstname": "Alice",
+      "lastname": "Smith"
+    },
+    "email": "alice.smith@example.com",
+    "vehicle": {
+      "color": "Red",
+      "plate": "XYZ1234",
+      "capacity": 4,
+      "vehicleType": "car"
+    }
+    // ...other captain fields
+  }
+}
+```
+
+### Authentication Error (401 Unauthorized)
+```jsonc
+{
+  "message": "Authentication required"
+}
+```
+
+## Notes
+- Requires a valid JWT token in the Authorization header.
+- Returns the profile of the currently authenticated captain.
+
+# Captain Logout Endpoint Documentation
+
+## Endpoint
+`GET /captains/logout`
+
+## Description
+Logs out the authenticated captain by invalidating the session or token. Requires a valid JWT token in the Authorization header.
+
+## Request Headers
+- `Authorization: Bearer <jwt_token>` (required)
+
+## Responses
+
+### Success (200 OK)
+```jsonc
+{
+  "message": "Logged out successfully"
+}
+```
+
+### Authentication Error (401 Unauthorized)
+```jsonc
+{
+  "message": "Authentication required"
+}
+```
+
+## Notes
+- Requires a valid JWT token in the Authorization header.
+- Logs out the currently authenticated captain.

@@ -1,4 +1,4 @@
-# Uber-Video (Project)
+# Uber-clone (Project)
 
 This README describes the "Uber-Video" demo project — purpose, setup, usage, structure, features, implementation notes, and backend file explanations.
 
